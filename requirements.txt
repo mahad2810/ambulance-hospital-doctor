@@ -1,0 +1,13 @@
+langgraph
+langchain
+langchain_community
+faiss-cpu
+pandas
+numpy
+scikit-learn
+sentence-transformers
+jupyter
+ipykernel
+groq
+langchain_huggingface
+python-dotenv
