@@ -1,0 +1,21 @@
+zone_id,zone_name,city,center_lat,center_lng,population_density,road_density,major_intersections,black_spots_count,avg_traffic_index,commercial_activity_index,nearby_hospital_count,avg_distance_to_nearest_hospital_km
+ZONE_001,Kolkata Zone 1,Kolkata,22.348782,88.157493,19253.46,3.94,15,0,0.57,0.61,0,14.98
+ZONE_002,Kolkata Zone 2,Kolkata,22.492999,88.139851,9727.01,12.1,12,3,0.41,0.92,0,8.58
+ZONE_003,Kolkata Zone 3,Kolkata,22.709394,88.553215,18215.82,2.12,12,7,0.37,0.14,0,6.79
+ZONE_004,Kolkata Zone 4,Kolkata,22.656169,88.177025,36731.28,7.25,7,7,0.49,0.85,0,13.38
+ZONE_005,Kolkata Zone 5,Kolkata,22.706997,88.285631,33052.38,5.72,10,8,0.7,0.96,1,3.22
+ZONE_006,Kolkata Zone 6,Kolkata,22.328874,88.560371,27615.41,9.82,9,7,0.66,0.48,0,16.11
+ZONE_007,Kolkata Zone 7,Kolkata,22.577633,88.537571,27590.8,15.06,2,7,0.76,0.25,0,8.1
+ZONE_008,Kolkata Zone 8,Kolkata,22.491058,88.309497,7565.18,10.22,10,5,0.31,0.63,0,6.69
+ZONE_009,Kolkata Zone 9,Kolkata,22.738402,88.295658,36365.23,19.96,7,8,0.65,0.84,1,1.85
+ZONE_010,Kolkata Zone 10,Kolkata,22.352463,88.257751,22317.28,15.76,12,3,0.68,0.98,0,7.44
+ZONE_011,Kolkata Zone 11,Kolkata,22.399481,88.38209,18250.66,10.3,1,2,0.62,0.12,1,4.04
+ZONE_012,Kolkata Zone 12,Kolkata,22.722044,88.456383,38413.52,13.42,1,1,0.73,0.56,1,1.6
+ZONE_013,Kolkata Zone 13,Kolkata,22.676126,88.155353,36411.78,16.32,7,1,0.68,0.67,0,16.05
+ZONE_014,Kolkata Zone 14,Kolkata,22.337168,88.275129,38451.81,2.59,9,5,0.59,0.12,0,7.44
+ZONE_015,Kolkata Zone 15,Kolkata,22.640642,88.195829,38711.32,3.16,14,2,0.56,0.31,0,11.28
+ZONE_016,Kolkata Zone 16,Kolkata,22.361788,88.553354,7000.57,11.34,9,4,0.4,0.69,0,13.64
+ZONE_017,Kolkata Zone 17,Kolkata,22.780512,88.501966,18624.07,4.28,6,8,0.38,0.25,0,7.95
+ZONE_018,Kolkata Zone 18,Kolkata,22.617248,88.329991,30947.61,10.19,1,5,0.61,0.76,1,3.27
+ZONE_019,Kolkata Zone 19,Kolkata,22.682668,88.469413,20790.21,9.72,13,0,0.41,0.39,2,3.29
+ZONE_020,Kolkata Zone 20,Kolkata,22.581021,88.392189,17024.98,3.89,12,5,0.46,0.61,1,4.0
