@@ -1,0 +1,125 @@
+
+# Major correctness & logic issues (high priority)
+
+1. **Inconsistent distance math**
+
+   * Problem: `_find_best_ambulances` uses `haversine` (good) but `hospital_node` uses `dist = sqrt((lat diff)**2 + (lng diff)**2)` — that’s not real distance and will screw hospital ranking.
+   * Fix: use `haversine` everywhere (or a proper geodesic library). Keep units consistent (km).
+
+2. **Weird / brittle normalizations & score signs**
+
+   * Problem: `norm_dist = min(dist * 10, 1.0)` (scales distance weirdly), and `hospital_ann_score` uses `weights = [-0.6, 0.3, 0.1, 0.9]` — hard to interpret whether higher score = better given how you normalize. It’s easy to invert logic by accident.
+   * Fix: define clear feature semantics (e.g., `proximity_score = 1 - norm_dist` so larger=better), document normalization, and unit-test the score function.
+
+3. **Toy ETA calculation is naive**
+
+   * Problem: ETA = distance/25 km/h constant. Traffic, road network, and time-of-day matter. That affects dispatch decisions.
+   * Fix: integrate a routing API (Google/OSRM) or at least use per-ambulance historical speed estimates. Flag when routing data is missing and fall back to conservative estimates.
+
+4. **LLM output is trusted blindly**
+
+   * Problem: `doctor_node` asks LLM to “return ONLY valid JSON” but then `response.content` is used directly. LLMs can hallucinate or return invalid JSON.
+   * Fix: validate/parse LLM output with a JSON schema. If parse fails, fallback to rule-based selection and log the event. Use a robust JSON extraction layer (regex + safe parser).
+
+5. **Dangerous deserialization & insecure load**
+
+   * Problem: `FAISS.load_local(..., allow_dangerous_deserialization=True)` — security risk.
+   * Fix: avoid dangerous deserialization; protect index files, use signed artifacts or recreate index at deployment from trusted sources.
+
+# Reliability, safety & production-readiness (high → medium)
+
+6. **No error handling / brittle failure modes**
+
+   * Problem: many `try/except` are absent around file reads, LLM/DB calls, retriever.invoke, etc. A failed call can crash flow.
+   * Fix: add structured error handling and deterministic fallbacks; return operator-friendly error messages.
+
+7. **No auditing / logging / explainability records**
+
+   * Problem: explanations are human-readable strings but there’s no structured audit trail for decisions (critical in emergency systems).
+   * Fix: persist decision inputs, scores, chosen candidate, LLM outputs, timestamps and user overrides to a write-once log for audits.
+
+8. **Concurrency & statefulness**
+
+   * Problem: `ambulances_df` is an in-memory DataFrame, mutated per request — race conditions if concurrent requests arrive.
+   * Fix: move to a shared datastore (Postgres, Redis), or lock updates; treat CSV as offline snapshot only.
+
+9. **Time handling / timezone**
+
+   * Problem: `timestamp=dt.datetime.now().isoformat()` is naive local time and not timezone-aware.
+   * Fix: use timezone-aware timestamps (UTC) everywhere.
+
+10. **No monitoring, metrics or offline evaluation**
+
+    * Problem: No metrics (response time, chosen vs optimal, override rate), no test harness or simulation.
+    * Fix: implement ML evaluation and run scenario simulations; track KPIs (avg response time saved, wrong picks, LLM parse failures).
+
+# Data & ML limitations (medium)
+
+11. **Features are hand-crafted and unvalidated**
+
+    * Problem: hospital ANN is a toy with arbitrary weights. Without data, weights may be wrong or biased.
+    * Fix: collect labeled outcomes / dispatch logs and train or tune weights; run offline cross-validation and human-in-the-loop calibration.
+
+12. **Vector search / embeddings reliance**
+
+    * Problem: doctor matching assumes the index is high-quality and up-to-date. FAISS index may be stale.
+    * Fix: add index refresh pipelines, and fallbacks to structured filters (seniority + on_call) when retriever fails.
+
+13. **Data quality & CSV parsing**
+
+    * Problem: boolean conversion logic (`.astype(str).str.lower().isin([...])`) is brittle; missing columns cause issues in other code.
+    * Fix: add schema validation at load time with clear error messages and example templates for CSV uploads.
+
+# Security, privacy & compliance (high importance)
+
+14. **PHI & privacy risk**
+
+    * Problem: medical data could be PHI (patient location, emergency type). No mention of encryption, access controls, retention policy.
+    * Fix: implement encryption-at-rest/in-transit, access controls, data minimization, and retention rules. For deployments, consult local health-data laws (HIPAA/GDPR equivalents).
+
+15. **API keys not validated & rate limiting**
+
+    * Problem: `GOOGLE_MAPS_API_KEY` is read but not used; if integrated, you need quotas, error handling, and throttling.
+    * Fix: add key validation, exponential backoff, and circuit-breakers.
+
+# UX / Demo / product pitfalls (low → medium)
+
+16. **Explainability is simplistic**
+
+    * Problem: explanations are short strings; for operators they may need structured reasons and confidence.
+    * Fix: return structured reasons + confidence scores per factor (distance score, ICU score, trauma flag, etc.).
+
+17. **Edge-case behavior not defined**
+
+    * Problem: what if all ambulances are busy? or hospital list empty? Currently returns placeholders but no escalation.
+    * Fix: implement escalation flows: notify human dispatcher, broadcast to nearby private ambulances, or suggest patient self-transport.
+
+18. **Dependency & reproducibility**
+
+    * Problem: many external libs/versions not pinned; LLM and embedding model usage may break across environments.
+    * Fix: add `requirements.txt`/`poetry.lock`, containerize, and set deterministic model versions.
+
+# Attack surface & operational risk
+
+19. **LLM injection & prompt risk**
+
+    * Problem: LLM prompt includes remote data (doc_context). If that text is compromised, LLM could output dangerous text or wrong actions.
+    * Fix: sanitize inputs, and use output validators and human sign-off for high-risk decisions.
+
+20. **Lack of fallback safe-mode**
+
+    * Problem: system lacks a “safe-mode” that forces human dispatch when confidence is low.
+    * Fix: implement confidence thresholds that trigger human intervention.
+
+# Practical prioritized remediation plan (do these first)
+
+1. **Fix distance consistency & ETA** (haversine only + routing fallback).
+2. **Validate & parse LLM JSON outputs**; add schema validation + fallback.
+3. **Stop dangerous deserialization** and secure FAISS artifacts.
+4. **Move ambulances/hospitals state to a proper DB** (avoid in-memory concurrency issues).
+5. **Add robust logging, metrics, and audit trail** for every decision.
+6. **Add error handling & retries for external APIs** (LLM, FAISS, maps).
+7. **Data validation at load time** (schema, missing columns, NaNs).
+8. **Create simulation tests** to benchmark against rule-based baseline.
+9. **Add privacy & compliance controls** (encryption, retention, access logs).
+10. **Add human-in-loop override + confidence/thresholding.**
