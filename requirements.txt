@@ -11,5 +11,12 @@ ipykernel
 groq
 langchain_huggingface
 python-dotenv
-zyndai-agent
 streamlit
+requests
+pydeck
+plotly
+langchain-groq
+openai
+google-generativeai
+langchain-openai
+langchain-google-genai
