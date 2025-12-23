@@ -14,9 +14,30 @@ class SimulationAgent:
     For production, integrate with actual ZyndAI or other blockchain/identity system.
     """
     def __init__(self):
-        self.identity = f"did:emergency:kolkata:{os.getenv('AGENT_ID', 'demo-001')}"
+        self.identity = f"did:zynd:emergency:kolkata:{os.getenv('AGENT_ID', 'demo-001')}"
+        self.credentials = ["Credential:ALS_Certified", "Credential:Authorized_Responder"]
         print(f"✅ [EmergencyAgent] Initialized in OFFLINE MODE")
         print(f"✅ [Identity] {self.identity}")
+
+    def verify_handshake(self, target_did: str, required_credential: str) -> bool:
+        """
+        Simulates the cryptographic handshake and credential verification.
+        In a real system, this would verify the VC signature against the ledger.
+        """
+        print(f"🔐 [Zynd Security] Initiating Handshake with {target_did}...")
+        time.sleep(0.5) # Simulate network latency
+        
+        # Simulation Logic: Check if DID is valid and credential exists
+        if not target_did.startswith("did:zynd:"):
+            print(f"❌ [Zynd Security] Handshake FAILED: Invalid DID format ({target_did})")
+            return False
+            
+        if required_credential in self.credentials:
+            print(f"✅ [Zynd Security] Handshake SUCCESS: Verified {required_credential}")
+            return True
+        else:
+            print(f"❌ [Zynd Security] Handshake FAILED: Missing Credential {required_credential}")
+            return False
 
 # --- 2. MAIN WRAPPER CLASS ---
 class EmergencyResponseAgent:
@@ -45,6 +66,17 @@ class EmergencyResponseAgent:
             request_id: Unique identifier for the emergency
         """
         import uuid
+        
+        # --- ZYND SECURITY CHECK ---
+        # Simulate verifying the "Citizen App" or "Dispatcher" before processing
+        # In a real scenario, the caller would provide their DID.
+        caller_did = "did:zynd:citizen:app_v1" 
+        if not self.zynd_agent.verify_handshake(caller_did, "Credential:Authorized_Responder"):
+             return {
+                "status": "error",
+                "message": "Security Verification Failed: Unauthorized Agent"
+            }
+        # ---------------------------
         
         if request_id is None:
             request_id = str(uuid.uuid4())[:8]
